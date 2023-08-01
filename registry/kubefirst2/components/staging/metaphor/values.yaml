@@ -1,0 +1,23 @@
+metaphor:
+  image:
+    repository: ghcr.io/shankyjs-playground/metaphor
+  imagePullSecrets:
+  - name: docker-config
+  ingress:
+    className: nginx
+    enabled: true
+    annotations:
+      cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    hosts:
+    - host: metaphor-staging.kubefirst.shankyjs.com
+      paths:
+      - path: /
+        pathType: Prefix
+    tls:
+    - secretName: metaphor-tls
+      hosts:
+      - metaphor-staging.kubefirst.shankyjs.com
+  metaphor:
+    host: https://metaphor-staging.kubefirst.shankyjs.com/api
+    console: https://kubefirst.kubefirst.shankyjs.com
+  vaultSecretPath: staging/metaphor

@@ -1,0 +1,78 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kubefirst-console
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: '10'
+spec:
+  project: default
+  source:
+    repoURL: https://kubefirst.github.io/charts
+    targetRevision: 2.1.9
+    chart: console
+    helm:
+      values: |-
+        env:
+          ARGO_CD_URL:
+            value: "https://argocd.kubefirst.shankyjs.com"
+          ARGO_WORKFLOWS_URL:
+            value: "https://argo.kubefirst.shankyjs.com"
+          ATLANTIS_URL:
+            value: "https://atlantis.kubefirst.shankyjs.com"
+          CLOUD:
+            value: "gcp"
+          CLUSTER_ID:
+            value: "0qc0yk"
+          CLUSTER_TYPE:
+            value: "mgmt"
+          DOMAIN_NAME:
+            value: "kubefirst.shankyjs.com"
+          GIT_PROVIDER:
+            value: "github"
+          GITHUB_OWNER:
+            value: "shankyjs-playground"
+          KUBEFIRST_VERSION:
+            value: "v2.2.6"
+          KUBEFIRST_TEAM:
+            value: "false"
+          METAPHOR_DEVELOPMENT_URL:
+            value: "https://metaphor-development.kubefirst.shankyjs.com"
+          METAPHOR_STAGING_URL:
+            value: "https://metaphor-staging.kubefirst.shankyjs.com"
+          METAPHOR_PRODUCTION_URL:
+            value: "https://metaphor-production.kubefirst.shankyjs.com"
+          USE_TELEMETRY:
+            value: "true"
+          VAULT_URL:
+            value: "https://vault.kubefirst.shankyjs.com"
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: nginx
+            cert-manager.io/cluster-issuer: "letsencrypt-prod"
+            # nginx.ingress.kubernetes.io/auth-signin: "https://vouch.kubefirst.shankyjs.com/login?url=$scheme://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err"
+            # nginx.ingress.kubernetes.io/auth-url: https://vouch.kubefirst.shankyjs.com/validate
+            # nginx.ingress.kubernetes.io/auth-response-headers: X-Vouch-User
+            # nginx.ingress.kubernetes.io/auth-snippet: |
+            #   auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;
+            #   auth_request_set $auth_resp_err $upstream_http_x_vouch_err;
+            #   auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;
+          hosts:
+            - host: kubefirst.kubefirst.shankyjs.com
+              paths:
+                - path: /
+                  pathType: ImplementationSpecific
+          tls:
+            - secretName: kubefirst-tls
+              hosts:
+                - kubefirst.kubefirst.shankyjs.com
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubefirst
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
